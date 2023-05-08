@@ -1,13 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLoaderData } from "react-router-dom";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
+
+type loaderData = {
+  session: Session;
+  participantId: string;
+}
+
+function copyLink(link: string) {
+  navigator.clipboard.writeText(link);
+}
 
 function Session() {
   const [myEstimate, setMyEstimate] = useState('');
-  const [participants, setParticipants] = useState([]);
-  const [socket, setSocket] = useState(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
 
-  const { session, participantId } = useLoaderData();
+  const { session, participantId } = useLoaderData() as loaderData;
 
   useEffect(() => {
     if (session) {
@@ -16,14 +25,14 @@ function Session() {
   }, [session, setParticipants]);
 
   useEffect(() => {
-    const socket = new io('ws://localhost:7071');
+    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io('ws://localhost:7071');
     setSocket(socket);
 
     function onConnect() {
       console.log('connected');
     }
 
-    function onSessionUpdated(update) {
+    function onSessionUpdated(update: Session) {
       setParticipants(update.participants);
     }
 
@@ -37,7 +46,7 @@ function Session() {
   }, [session, setParticipants, setSocket]);
 
   const updateEstimate = useCallback(async () => {
-    socket.emit('update-estimate', {
+    socket?.emit('update-estimate', {
       sessionId: session._id,
       participantId,
       estimate: myEstimate,
@@ -51,6 +60,7 @@ function Session() {
 
   const participant = participants.find(p => p._id === participantId);
   const otherParticipants = participants.filter(p => p._id !== participantId);
+  const shareLink = `${window.location.origin}/join-session/${session._id}`
 
   if (!participant) {
     return <h1>Participant not found.</h1>;
@@ -71,6 +81,7 @@ function Session() {
 
       <input type="number" value={myEstimate} onChange={e => setMyEstimate(e.target.value)} />
       <button onClick={updateEstimate}>Update estimate</button>
+      <button onClick={() => copyLink(shareLink)}>Copy share link</button>
     </div>
   )
 }

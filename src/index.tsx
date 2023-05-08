@@ -1,7 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -9,15 +7,14 @@ import {
 import axios from 'axios';
 
 import reportWebVitals from './reportWebVitals';
-import reducer, { initialState } from './store/reducer';
 import './index.css';
 import JoinSession from './components/JoinSession';
 import Session from './components/Session';
+import EmptySession from 'components/EmptySession';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-const store = createStore(reducer, initialState);
+const root = ReactDOM.createRoot(document.getElementById('root')!);
 
-async function sessionLoader({ params }) {
+async function sessionLoader({ params }: any) {
   const response = await axios.get('http://localhost:3001/session', {
     params: {
       sessionId: params.sessionId,
@@ -26,7 +23,7 @@ async function sessionLoader({ params }) {
   return { session: response.data };
 }
 
-async function sessionWithParticipantIdLoader({ params }) {
+async function sessionWithParticipantIdLoader({ params }: any) {
   const response = await axios.get('http://localhost:3001/session', {
     params: {
       sessionId: params.sessionId,
@@ -38,7 +35,7 @@ async function sessionWithParticipantIdLoader({ params }) {
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <h1>Don't be a moron</h1>,
+    element: <EmptySession />,
   },
   {
     path: "/join-session/:sessionId",
@@ -54,9 +51,7 @@ const router = createBrowserRouter([
 
 root.render(
   <React.StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 

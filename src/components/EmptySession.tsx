@@ -1,17 +1,19 @@
 import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function EmptySession({ onSessionCreated }) {
+export default function EmptySession() {
   const [sessionName, setSessionName] = useState('');
   const [participantName, setParticipantName] = useState('');
+  const navigate = useNavigate();
 
   const createSession = () => {
     axios.post('http://localhost:3001/create-session', {
       sessionName: sessionName,
       participantName: participantName,
     }).then((response) => {
-      const { _id, name, participants } = response.data;
-      onSessionCreated(_id, name, participants);
+      const { _id, participants } = response.data;
+      navigate(`/session/${_id}/${participants[0]._id}`);
     });
   }
 
